@@ -1,0 +1,60 @@
+
+
+Código DAX para Calendário
+Calendario = ADDCOLUMNS(
+    CALENDAR(DATE(YEAR(FIRSTDATE(Faturamento[DataEscrituração])), 1, 1), DATE(YEAR(LASTDATE(Faturamento[DataEscrituração])), 12, 31)),
+    "Mês / Ano", FORMAT([Date], "MMM-YYYY"),
+    "Ordenar", EOMONTH([Date],0),
+    "Dia da Semana", FORMAT(WEEKDAY([Date]), "DDDD"),
+    "D", WEEKDAY([Date], 2),
+    "Mês", FORMAT([Date], "MMMM"),
+    "Ano", YEAR([Date]),
+    "Trimestre", QUARTER([Date]),
+    "Faixa diária", IF(DAY([Date])<=5, "01 a 5",
+                        IF(DAY([Date])<=10, "06 a 10",
+                            IF(DAY([Date])<=15, "11 a 15",
+                                IF(DAY([Date])<=20, "16 a 20",
+                                    IF(DAY([Date])<=25, "21 a 25", "26 a 31"
+                    )))))     
+)
+
+
+Quantidade = 
+CALCULATE(SUM('Faturamento'[Qtd.]), 'Faturamento'[CFOP_Operacao]="Receita")
+
+Receita = CALCULATE(SUM('Faturamento'[Valor Total Item]), 'Faturamento'[CFOP_Operacao]="Receita")
+
+Desconto = CALCULATE(SUM('Faturamento'[Descontos]), 'Faturamento'[CFOP_Operacao]="Receita", Faturamento[Descontos]<>0)
+
+Frete = CALCULATE(SUM('Faturamento'[Valor Frete]), 'Faturamento'[CFOP_Operacao]="Receita")
+
+Receita - D + F = [Receita]-[Desconto]+[Frete]
+
+CPV = CALCULATE(SUM('Faturamento'[Custo Total]), 'Faturamento'[CFOP_Operacao]="Receita")
+
+CPV Unitário = [CPV]/[Quantidade]
+
+CPV Unitário = [CPV]/[Quantidade]
+
+% Unit. = [CPV Unitário]/[Receita Unitária]
+
+
+
+Custo Unitário = 
+VAR _chave = 'Faturamento'[Código]
+VAR _tb = FILTER(
+    CPV,
+    CPV[Cod_Produto]=_chave
+)
+RETURN MAXX(_tb, [CustoUnitario])
+
+
+
+Custo Total = 'Faturamento'[Custo Unitário]*[Qtd.]
+
+Receita Unitária = [Receita - D + F]/[Quantidade]
+
+
+
+
+
